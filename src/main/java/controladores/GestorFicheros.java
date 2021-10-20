@@ -6,8 +6,11 @@
 package controladores;
 
 import ar.csdam.pr.libreriaar.Entradas;
+import ar.csdam.pr.libreriaar.EntradasGui;
+import com.mycompany.ejercicioexamenrepasospa.app.Vehiculo;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,9 +18,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.OutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
 import java.util.Scanner;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -37,10 +42,11 @@ public class GestorFicheros {
         String ruta = "src/main/java/ficheros/";
         String nombrefichero = "fichero01.txt";
         String linea;
+        File fichero = new File(ruta + nombrefichero);
+        FileReader contenidoFichero = null;
         try {
-            File fichero = new File(ruta + nombrefichero);
             if (fichero.exists()) {
-                FileReader contenidoFichero = new FileReader(fichero, Charset.forName("UTF-8"));
+                contenidoFichero = new FileReader(fichero, Charset.forName("UTF-8"));
                 BufferedReader br = new BufferedReader(contenidoFichero);
                 while ((linea = br.readLine()) != null) {
                     copia.append(linea + "\n");
@@ -52,26 +58,27 @@ public class GestorFicheros {
             System.out.println("errorcillo al leer el ficher \n" + e.toString());
         } catch (Exception e) {
             System.out.println("errorcillo " + e.toString());
+        } finally {
+            try {
+                contenidoFichero.close();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+            }
         }
         System.out.println(resultado);
     }
 
     public void ejercicio02() {
-//        String rutaArchivo1 = "src/main/java/ficheros/archivo01.txt";
-//        String rutaArchivo2 = "src/main/java/ficheros/archivo02.txt";
-//      String rutaDestino = "src/main/java/ficheros/resultado/";
-
         String nombreResultado;
 
         StringBuilder textoResultado = new StringBuilder();
         String linea;
-        BufferedReader br;
+        BufferedReader br = null;
+        BufferedWriter bw = null;
 
         try {
-//            File archivo1 = new File(rutaArchivo1);
-//            File archivo2 = new File(rutaArchivo2);
-            File archivo1 = Entradas.pedirArchivo(true, false);
-            File archivo2 = Entradas.pedirArchivo(true, false);
+            File archivo1 = EntradasGui.pedirArchivo(true, false);
+            File archivo2 = EntradasGui.pedirArchivo(true, false);
             nombreResultado = archivo1.getName().replace(".txt", "") + "_" + archivo2.getName();
             br = new BufferedReader(new FileReader(archivo1, Charset.forName("UTF-8")));
             while ((linea = br.readLine()) != null) {
@@ -82,22 +89,26 @@ public class GestorFicheros {
             while ((linea = br.readLine()) != null) {
                 textoResultado.append(linea);
             }
-            File rutaDestino = Entradas.pedirArchivo(false, true);
-//            System.out.println(rutaDestino.toString());                        
+            File rutaDestino = EntradasGui.pedirArchivo(false, true);
 
             File archifoFinal = new File(rutaDestino.toPath() + "\\" + nombreResultado);
-//            System.out.println(archifoFinal.toString());
-            BufferedWriter bw = new BufferedWriter(new FileWriter(archifoFinal, Charset.forName("UTF-8")));
+            bw = new BufferedWriter(new FileWriter(archifoFinal, Charset.forName("UTF-8")));
             bw.write(textoResultado.toString());
 
             System.out.println("Operación realizada con éxito");
 
-            br.close();
-            bw.close();
         } catch (FileNotFoundException e) {
             System.out.println("errorcillo al leer el fichero \n" + e.toString());
         } catch (Exception e) {
             System.out.println("errorcillo " + e.toString());
+        } finally {
+            try {
+                br.close();
+                bw.close();
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+            }
         }
 
     }
@@ -106,11 +117,11 @@ public class GestorFicheros {
         StringBuilder copia = new StringBuilder();
         String resultado = "";
         String linea;
+        File ficheroEntrada = EntradasGui.pedirArchivo(true, false);
+        FileInputStream contenido = null;
         try {
-            File ficheroEntrada = Entradas.pedirArchivo(true, false);
             if (ficheroEntrada.exists()) {
-                //FileReader contenidoFichero = new FileReader(fichero, Charset.forName("UTF-8"));
-                FileInputStream contenido = new FileInputStream(ficheroEntrada);
+                contenido = new FileInputStream(ficheroEntrada);
                 int longitud = contenido.available();
                 int[] arrayEntrada = new int[longitud];
                 System.out.println("longitud: " + longitud);
@@ -118,10 +129,9 @@ public class GestorFicheros {
 
                     for (int i = 0; i < longitud; i++) {
                         arrayEntrada[i] = contenido.read();
-                        //   System.out.println(arrayEntrada[i]);
                     }
                     contenido.close();
-                    File directorioSalida = Entradas.pedirArchivo(false, true);
+                    File directorioSalida = EntradasGui.pedirArchivo(false, true);
                     File archivoSalida = new File(directorioSalida.toPath() + "\\copia_" + ficheroEntrada.getName());
                     FileOutputStream salida = new FileOutputStream(archivoSalida);
 
@@ -138,40 +148,156 @@ public class GestorFicheros {
             System.out.println("errorcillo al leer el ficher \n" + e.toString());
         } catch (Exception e) {
             System.out.println("errorcillo " + e.toString());
+        } finally {
+            try {
+                contenido.close();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+            }
         }
         System.out.println(resultado);
 
     }
 
     public void ejercicio04() {
-        System.out.println("Indica el directorio donde guardar el archivo vehiculos.dat");
-        File directorioSalida = Entradas.pedirArchivo(false, true);
+        JOptionPane.showMessageDialog(null, "Indica el directorio donde guardar y leer el archivo vehiculos.dat");
+        File directorioSalida = EntradasGui.pedirArchivo(false, true);
         File archivoSalida = new File(directorioSalida.toPath() + "\\vehiculos.dat");
+        if (EntradasGui.pedirBoolean("¿Quieres registrar un vehiculo?")) {
 
-        System.out.println("Matrícula del vehículo:");
-        String matricula = Entradas.pedirString(lector);
-        System.out.println("Marca:");
-        String marca = Entradas.pedirString(lector);
-        System.out.println("Capacidad del deposito:");
-        double deposito = Entradas.pedirDouble(lector);
-        System.out.println("Modelo:");
-        String modelo = Entradas.pedirString(lector);
-        
-        String resultado = "El vehículo tiene una matrícula " + matricula + ", su marca es " + marca + ", el tamaño depósito es de " + deposito + " litros y su modelo es " + modelo + ".\n";
-        
-        System.out.println(resultado);
-        
-        try {
-            DataOutputStream dos = new DataOutputStream(new FileOutputStream(archivoSalida, true));
-            dos.writeUTF(resultado);
-            dos.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("errorcillo al leer el ficher \n" + e.toString());
-        } catch (Exception e) {
-            System.out.println("errorcillo " + e.toString());
+            String matricula = EntradasGui.pedirString("Matrícula del vehículo:");
+            String marca = EntradasGui.pedirString("Marca:");
+            double deposito = EntradasGui.pedirDouble("Capacidad del deposito:");
+            String modelo = EntradasGui.pedirString("Modelo:");
+            String resultado = "Se ha añadido el  vehículo:\n  matrícula: " + matricula + ", marca: " + marca + ", tamaño depósito: " + deposito + " litros, modelo: " + modelo + ".";
+
+            DataOutputStream dos = null;
+            try {
+                dos = new DataOutputStream(new FileOutputStream(archivoSalida, true));
+                dos.writeUTF(matricula);
+                dos.writeUTF(marca);
+                dos.writeDouble(deposito);
+                dos.writeUTF(modelo);
+                //dos.writeUTF(resultado);
+                dos.close();
+            } catch (FileNotFoundException e) {
+                JOptionPane.showMessageDialog(null, "errorcillo al leer el fichero \n" + e.toString());
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+            } finally {
+                try {
+                    dos.close();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+                }
+            }
+            JOptionPane.showMessageDialog(null, "Añadido al registro registro: \n" + resultado);
         }
-        System.out.println("Añadido el registro: \n" + resultado);
+        if (EntradasGui.pedirBoolean("¿Quieres mostrar los registros guardados?")) {
+            FileInputStream contenido = null;
+            try {
+                contenido = new FileInputStream(archivoSalida);
+                DataInputStream dis = new DataInputStream(contenido);
+                StringBuilder salida = new StringBuilder();
+                while (contenido.available() > 3) {
+                    salida.append("\n*");
+                    salida.append("\n  matricula: " + dis.readUTF().toString());
+                    salida.append("\n  marca: " + dis.readUTF().toString());
+                    salida.append("\n  deposito: " + Double.toString(dis.readDouble()));
+                    salida.append("\n  modelo: " + dis.readUTF().toString());
+                }
+                System.out.println(salida.toString());
+                JOptionPane.showMessageDialog(null, salida.toString());
+                System.out.println(salida.toString());
+            } catch (FileNotFoundException e) {
+                JOptionPane.showMessageDialog(null, "errorcillo al leer el fichero \n" + e.toString());
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+            } finally {
+                try {
+                    contenido.close();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+                }
+            }
+        }
 
     }
 
+    public void ejercicio05() {
+        JOptionPane.showMessageDialog(null, "Indica el directorio donde guardar y leer el archivo vehiculos.dat");
+        File directorioSalida = EntradasGui.pedirArchivo(false, true);
+        File archivo = new File(directorioSalida.toPath() + "\\vehiculosObjetos.dat");
+
+        if (EntradasGui.pedirBoolean("¿Quieres registrar un vehiculo?")) {
+
+            String matricula = EntradasGui.pedirString("Matrícula del vehículo:");
+            String marca = EntradasGui.pedirString("Marca:");
+            double deposito = EntradasGui.pedirDouble("Capacidad del deposito:");
+            String modelo = EntradasGui.pedirString("Modelo:");
+            Vehiculo vehiculo = new Vehiculo(matricula, marca, deposito, modelo);
+
+            String resultado = "Se ha añadido el OBJETO vehículo:\n  matrícula: " + matricula + ", marca: " + marca + ", tamaño depósito: " + deposito + " litros, modelo: " + modelo + ".";
+
+            ObjectOutputStream oos = null;
+            try {
+                if (archivo.exists()) {
+                    oos = new ObjectOutputStream(new FileOutputStream(archivo, true)) {
+                        @Override
+                        protected void writeStreamHeader() {
+                        }
+                    };
+                    oos.writeObject(vehiculo);
+                } else {
+                    oos = new ObjectOutputStream(new FileOutputStream(archivo));
+                    oos.writeObject(vehiculo);
+                }
+            } catch (FileNotFoundException e) {
+                JOptionPane.showMessageDialog(null, "errorcillo al leer el fichero \n" + e.toString());
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+            } finally {
+                try {
+                    oos.close();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+                }
+            }
+
+            JOptionPane.showMessageDialog(null, "Añadido al registro registro: \n" + resultado);
+            if (EntradasGui.pedirBoolean("¿Quieres mostrar los registros guardados?")) {
+                FileInputStream contenido = null;
+                try {
+                    contenido = new FileInputStream(archivo);
+                    ObjectInputStream ois = new ObjectInputStream(contenido);
+                    StringBuilder salida = new StringBuilder();
+                    Vehiculo leerVehiculo;
+                    while (contenido.available() != 0) {
+                        leerVehiculo = (Vehiculo) ois.readObject();
+                        salida.append("\n*");
+                        salida.append("\n  matricula: " + leerVehiculo.getMatricula());
+                        salida.append("\n  marca: " + leerVehiculo.getMarca());
+                        salida.append("\n  deposito: " + Double.toString(leerVehiculo.getDeposito()));
+                        salida.append("\n  modelo: " + leerVehiculo.getModelo());
+                    }
+                    System.out.println(salida.toString());
+                    JOptionPane.showMessageDialog(null, salida.toString());
+                    System.out.println(salida.toString());
+                    contenido.close();
+                } catch (FileNotFoundException e) {
+                    JOptionPane.showMessageDialog(null, "errorcillo al leer el fichero \n" + e.toString());
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+                } finally {
+                    try {
+                        contenido.close();
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null, "errorcillo " + e.toString());
+                    }
+                }
+
+            }
+
+        }
+    }
 }

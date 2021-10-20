@@ -42,6 +42,7 @@ public class App {
         menu.addOpcion("Ejercicio 02");
         menu.addOpcion("Ejercicio 03");
         menu.addOpcion("Ejercicio 04");
+        menu.addOpcion("Ejercicio 05");
         
 
         return menu;
@@ -69,10 +70,16 @@ public class App {
             case 3:
                 System.out.println("Ejercicio 03");
                 gestor.ejercicio03();
+                break;
            
             case 4:
                 System.out.println("Ejercicio 04");
-                gestor.ejercicio04();
+                gestor.ejercicio04();                
+                break;
+           
+            case 5:
+                System.out.println("Ejercicio 05");
+                gestor.ejercicio05();
                 
                 break;
            
